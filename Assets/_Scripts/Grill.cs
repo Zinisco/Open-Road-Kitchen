@@ -53,6 +53,22 @@ public class Grill : KitchenSurface
             return;
         }
 
+        if (currentItem != null && player.IsHoldingItem)
+        {
+            if (TryCombineIntoPlayerHand(player))
+            {
+                if (cookingRoutine != null)
+                {
+                    StopCoroutine(cookingRoutine);
+                    cookingRoutine = null;
+                }
+
+                isCooking = false;
+            }
+
+            return;
+        }
+
         if (currentItem != null && !player.IsHoldingItem)
         {
             if (cookingRoutine != null)

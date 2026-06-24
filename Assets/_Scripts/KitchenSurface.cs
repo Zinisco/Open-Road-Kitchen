@@ -5,6 +5,8 @@ public class KitchenSurface : MonoBehaviour, IInteractable
     [Header("Surface")]
     [SerializeField] protected Transform itemPoint;
 
+    [SerializeField] private BurgerCombiner burgerCombiner;
+
     protected KitchenItem currentItem;
 
     public bool HasItem => currentItem != null;
@@ -22,6 +24,12 @@ public class KitchenSurface : MonoBehaviour, IInteractable
         if (currentItem == null && player.IsHoldingItem)
         {
             PlaceItem(player);
+            return;
+        }
+
+        if (currentItem != null && player.IsHoldingItem)
+        {
+            TryCombineHeldItem(player);
             return;
         }
 
@@ -59,5 +67,58 @@ public class KitchenSurface : MonoBehaviour, IInteractable
         currentItem = null;
 
         player.SetHeldItem(item);
+    }
+
+    private void TryCombineHeldItem(PlayerInteraction player)
+    {
+        if (burgerCombiner == null)
+            return;
+
+        KitchenItem heldItem = player.GetHeldItem();
+
+        if (heldItem == null)
+            return;
+
+        bool combined = burgerCombiner.TryCombine(
+            currentItem,
+            heldItem,
+            itemPoint,
+            out KitchenItem result);
+
+        if (!combined)
+            return;
+
+        player.RemoveHeldItem();
+        currentItem = result;
+    }
+
+    protected bool TryCombineIntoPlayerHand(PlayerInteraction player)
+    {
+        if (burgerCombiner == null)
+            return false;
+
+        KitchenItem heldItem = player.GetHeldItem();
+
+        if (heldItem == null || currentItem == null)
+            return false;
+
+        KitchenItem removedHeldItem = player.RemoveHeldItem();
+
+        bool combined = burgerCombiner.TryCombine(
+            currentItem,
+            removedHeldItem,
+            null,
+            out KitchenItem result);
+
+        if (!combined)
+        {
+            player.SetHeldItem(removedHeldItem);
+            return false;
+        }
+
+        currentItem = null;
+
+        player.SetHeldItem(result);
+        return true;
     }
 }
