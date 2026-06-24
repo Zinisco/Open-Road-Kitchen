@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7293071042838787039}
   - component: {fileID: 5487101043780533071}
   - component: {fileID: 387280884626581398}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Raw Burger Patty
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -11,6 +11,15 @@ public class PlayerInteraction : MonoBehaviour
     [Header("Holding")]
     [SerializeField] private Transform holdPoint;
 
+    [Header("Throwing")]
+    [SerializeField] private float minThrowForce = 3f;
+    [SerializeField] private float maxThrowForce = 10f;
+    [SerializeField] private float maxChargeTime = 1.25f;
+    [SerializeField] private float throwUpwardForce = 1.2f;
+
+    private bool isChargingThrow;
+    private float throwChargeTimer;
+
     private KitchenItem heldItem;
 
     public bool IsHoldingItem => heldItem != null;
@@ -20,6 +29,7 @@ public class PlayerInteraction : MonoBehaviour
     private void Update()
     {
         CheckForInteractable();
+        HandleThrowInput();
 
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
@@ -95,5 +105,66 @@ public class PlayerInteraction : MonoBehaviour
             col.enabled = true;
 
         return item;
+    }
+
+    private void HandleThrowInput()
+    {
+        Keyboard keyboard = Keyboard.current;
+
+        if (keyboard == null)
+            return;
+
+        if (!IsHoldingItem)
+            return;
+
+        if (keyboard.qKey.wasPressedThisFrame)
+        {
+            isChargingThrow = true;
+            throwChargeTimer = 0f;
+        }
+
+        if (keyboard.qKey.isPressed && isChargingThrow)
+        {
+            throwChargeTimer += Time.deltaTime;
+            throwChargeTimer = Mathf.Clamp(throwChargeTimer, 0f, maxChargeTime);
+        }
+
+        if (keyboard.qKey.wasReleasedThisFrame && isChargingThrow)
+        {
+            ThrowHeldItem();
+            isChargingThrow = false;
+            throwChargeTimer = 0f;
+        }
+    }
+
+    private void ThrowHeldItem()
+    {
+        KitchenItem item = heldItem;
+
+        if (item == null)
+            return;
+
+        heldItem = null;
+
+        item.transform.SetParent(null);
+
+        Collider col = item.GetComponent<Collider>();
+        if (col != null)
+            col.enabled = true;
+
+        Rigidbody rb = item.GetComponent<Rigidbody>();
+
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+
+            float chargePercent = throwChargeTimer / maxChargeTime;
+            float throwForce = Mathf.Lerp(minThrowForce, maxThrowForce, chargePercent);
+
+            Vector3 throwDirection = playerCamera.transform.forward;
+            Vector3 force = throwDirection * throwForce + Vector3.up * throwUpwardForce;
+
+            rb.AddForce(force, ForceMode.Impulse);
+        }
     }
 }
