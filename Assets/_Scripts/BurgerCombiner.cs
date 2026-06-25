@@ -6,9 +6,20 @@ public class BurgerCombiner : MonoBehaviour
     [SerializeField] private KitchenItem cookedBurgerPrefab;
     [SerializeField] private KitchenItem burntBurgerPrefab;
 
+    [SerializeField] private KitchenItem cookedCheeseburgerPrefab;
+
     public bool TryCombine(KitchenItem itemA, KitchenItem itemB, Transform parentPoint, out KitchenItem result)
     {
         result = null;
+
+        if (CanMakeCookedCheeseburger(itemA, itemB))
+        {
+            Destroy(itemA.gameObject);
+            Destroy(itemB.gameObject);
+
+            result = SpawnResult(cookedCheeseburgerPrefab, parentPoint);
+            return true;
+        }
 
         KitchenItem patty = null;
         KitchenItem bun = null;
@@ -36,23 +47,7 @@ public class BurgerCombiner : MonoBehaviour
         Destroy(itemA.gameObject);
         Destroy(itemB.gameObject);
 
-        result = Instantiate(prefabToSpawn);
-
-        if (parentPoint != null)
-        {
-            result.transform.SetParent(parentPoint);
-            result.transform.localPosition = Vector3.zero;
-            result.transform.localRotation = Quaternion.identity;
-        }
-
-        Rigidbody rb = result.GetComponent<Rigidbody>();
-        if (rb != null)
-            rb.isKinematic = true;
-
-        Collider col = result.GetComponent<Collider>();
-        if (col != null)
-            col.enabled = false;
-
+        result = SpawnResult(prefabToSpawn, parentPoint);
         return true;
     }
 
@@ -79,5 +74,40 @@ public class BurgerCombiner : MonoBehaviour
             default:
                 return null;
         }
+    }
+
+    private bool CanMakeCookedCheeseburger(KitchenItem itemA, KitchenItem itemB)
+    {
+        bool hasCookedBurger =
+            itemA.ItemType == KitchenItemType.BurgerCooked ||
+            itemB.ItemType == KitchenItemType.BurgerCooked;
+
+        bool hasCheeseSlices =
+            itemA.ItemType == KitchenItemType.CheeseSlices ||
+            itemB.ItemType == KitchenItemType.CheeseSlices;
+
+        return hasCookedBurger && hasCheeseSlices;
+    }
+
+    private KitchenItem SpawnResult(KitchenItem prefab, Transform parentPoint)
+    {
+        KitchenItem item = Instantiate(prefab);
+
+        if (parentPoint != null)
+        {
+            item.transform.SetParent(parentPoint);
+            item.transform.localPosition = Vector3.zero;
+            item.transform.localRotation = Quaternion.identity;
+        }
+
+        Rigidbody rb = item.GetComponent<Rigidbody>();
+        if (rb != null)
+            rb.isKinematic = true;
+
+        Collider col = item.GetComponent<Collider>();
+        if (col != null)
+            col.enabled = false;
+
+        return item;
     }
 }

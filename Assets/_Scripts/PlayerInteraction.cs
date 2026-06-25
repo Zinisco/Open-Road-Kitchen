@@ -35,6 +35,14 @@ public class PlayerInteraction : MonoBehaviour
         {
             currentInteractable?.Interact(this);
         }
+
+        if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+        {
+            if (currentInteractable is ISecondaryInteractable secondary)
+            {
+                secondary.SecondaryInteract(this);
+            }
+        }
     }
 
     private void CheckForInteractable()

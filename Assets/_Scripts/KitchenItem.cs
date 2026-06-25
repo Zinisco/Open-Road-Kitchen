@@ -10,7 +10,12 @@ public enum KitchenItemType
 
     BurgerRaw,
     BurgerCooked,
-    BurgerBurnt
+    BurgerBurnt,
+
+    CheeseBlock,
+    CheeseSlices,
+
+    BurgerCookedWithCheese,
 }
 
 public class KitchenItem : MonoBehaviour, IInteractable
